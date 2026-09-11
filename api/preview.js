@@ -1,28 +1,27 @@
-module.exports = async (req, res) => {
-  let { u = '', t = '', i = '', d = '' } = req.query;
-  let image = decodeURIComponent(i || '');
-  const dest = decodeURIComponent(u || 'https://shopee.com.br');
-  const title = decodeURIComponent(t || 'Oferta Imperdível');
-  const desc = decodeURIComponent(d || 'Desconto especial');
+export default function handler(req, res) {
+  const u = decodeURIComponent(req.query.u || 'https://shopee.com.br');
+  const t = decodeURIComponent(req.query.t || 'Oferta Shopee');
+  const d = decodeURIComponent(req.query.d || 'Desconto especial');
+  let i = decodeURIComponent(req.query.i || '');
 
-  if (!image) {
-    try {
-      const r = await fetch(dest, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      const html = await r.text();
-      const m = html.match(/<meta property="og:image" content="([^"]+)"/);
-      if (m) image = m[1];
-    } catch {}
+  // Se a imagem vier quebrada, usa uma padrão que o WhatsApp aceita
+  if (!i.startsWith('http')) {
+    i = 'https://cf.shopee.com.br/file/br-11134207-7qukw-ll5f2o2q9j2c9c_tn';
   }
-  if (!image) image = 'https://cf.shopee.com.br/file/br-11134207-7r98o-lx5h5g8e5j8e3c';
 
-  res.setHeader('Content-Type', 'text/html');
-  return res.send(`<!doctype html><html><head>
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${desc}">
-<meta property="og:image" content="${image}">
-<meta property="og:image:width" content="800">
-<meta property="og:image:height" content="800">
-<meta property="og:url" content="${dest}">
-<meta http-equiv="refresh" content="0;url=${dest}">
-</head><body><script>window.location="${dest}"</script></body></html>`);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+
+  res.send(`<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<meta property="og:title" content="${t.replace(/"/g, '')}">
+<meta property="og:description" content="${d.replace(/"/g, '')}">
+<meta property="og:image" content="${i}">
+<meta property="og:image:width" content="600">
+<meta property="og:image:height" content="600">
+<meta property="og:url" content="${u}">
+<meta property="og:type" content="website">
+<meta http-equiv="refresh" content="0;url=${u}">
+</head><body><script>window.location="${u}"</script></body></html>`);
 }
